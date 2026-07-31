@@ -4,10 +4,9 @@ import { StrokeAnalyzer } from "./strokeAnalyzer.js";
 import { construirRecomendaciones, tablaBiomecanica, tablaFrontal } from "./fitRules.js";
 import {
   drawSkeleton, LiveChart, renderRecommendations, renderReadouts,
-  captureSnapshot, drawAveragePose, renderTablaBiomecanica,
+  drawAveragePose, renderTablaBiomecanica,
   drawFrontalSkeleton, renderReadoutsFrontal,
 } from "./ui.js";
-import { generateReport } from "./report.js";
 
 const videoEl = document.getElementById("video");
 const overlayEl = document.getElementById("overlay");
@@ -22,14 +21,12 @@ const sideGroup = document.getElementById("sideGroup");
 const styleGroup = document.getElementById("styleGroup");
 const sideSelect = document.getElementById("side");
 const styleSelect = document.getElementById("style");
-const countdownInput = document.getElementById("countdown");
 const countdownOverlay = document.getElementById("countdownOverlay");
+const initialOverlay = document.getElementById("initialOverlay");
+const recordingOverlay = document.getElementById("recordingOverlay");
 const startBtn = document.getElementById("startBtn");
 const toggleMeasureBtn = document.getElementById("toggleMeasureBtn");
 const resetBtn = document.getElementById("resetBtn");
-const snapshotBtn = document.getElementById("snapshotBtn");
-const snapshotWrap = document.getElementById("snapshotWrap");
-const reportBtn = document.getElementById("reportBtn");
 const avgPoseBtn = document.getElementById("avgPoseBtn");
 
 const overlayCtx = overlayEl.getContext("2d");
@@ -38,7 +35,6 @@ const analyzer = new StrokeAnalyzer();
 const chart = new LiveChart(chartEl, { yMin: 40, yMax: 180, windowMs: 8000 });
 
 let lastCycleCountAtReport = -1;
-let lastSnapshotDataUrl = null;
 let showingAverage = false;
 let lastAvgXYPmi = null;
 let lastAvgXYPms = null;
@@ -57,8 +53,15 @@ const MIN_CYCLES_AUTOSTOP = 8;
 const STABILITY_WINDOW = 5;
 const STABILITY_THRESHOLD_DEG = 1.5;
 
+// Fixed on purpose — a configurable value wasn't earning its keep as a control.
+const MEASURE_COUNTDOWN_SECONDS = 10;
+
 function setStatus(text) {
   statusEl.textContent = text;
+}
+
+function updateRecordingOverlay() {
+  recordingOverlay.hidden = !(measuring && !showingAverage);
 }
 
 // Lets the rider trigger the countdown themselves once they're on the bike
@@ -85,6 +88,7 @@ function updateWarmupDisplay() {
   if (remainingMs <= 0) {
     clearWarmup();
     measuring = true;
+    updateRecordingOverlay();
     setStatus("Rastreando — pedaleá con ritmo constante frente a la cámara");
     return;
   }
@@ -94,17 +98,19 @@ function updateWarmupDisplay() {
 }
 
 function beginMeasuring() {
-  const seconds = Math.max(0, Math.floor(Number(countdownInput.value) || 0));
+  // Every "Empezar medición" starts a fully fresh capture — previous cycles
+  // don't carry over, so the count and averages always reflect just this run.
+  if (showingAverage) toggleAveragePose();
+  analyzer.reset();
+  frontalSamples = { left: [], right: [] };
+  resetResultsUI();
+
   clearWarmup();
   measuring = false;
   toggleMeasureBtn.textContent = "Detener medición";
-  if (seconds === 0) {
-    measuring = true;
-    setStatus("Rastreando — pedaleá con ritmo constante frente a la cámara");
-    return;
-  }
+  updateRecordingOverlay();
   warmupActive = true;
-  warmupDeadline = Date.now() + seconds * 1000;
+  warmupDeadline = Date.now() + MEASURE_COUNTDOWN_SECONDS * 1000;
   countdownOverlay.hidden = false;
   updateWarmupDisplay();
   warmupTimer = setInterval(updateWarmupDisplay, 200);
@@ -223,11 +229,21 @@ function stopMeasuring(reason) {
   clearWarmup();
   measuring = false;
   toggleMeasureBtn.textContent = "Empezar medición";
+  updateRecordingOverlay();
+
+  const n = isFrontalMode() ? Math.max(frontalSamples.left.length, frontalSamples.right.length) : analyzer.cycleCount();
   setStatus(
     reason === "stable"
-      ? `Postura estabilizada — medición completa tras ${analyzer.cycleCount()} pedaladas. Podés "Empezar medición" de nuevo para seguir sumando datos.`
-      : 'Medición detenida. Presioná "Empezar medición" para reanudar.'
+      ? `Postura estabilizada — medición completa tras ${n} pedaladas.`
+      : `Medición detenida tras ${n} pedaladas.`
   );
+
+  // Jump straight to the frozen average-pose review — that's the whole point
+  // of finishing a measurement in Perfil mode. Frontal mode has no such view;
+  // its result is already the live table.
+  if (!isFrontalMode() && !showingAverage && analyzer.cycleCount() > 0) {
+    toggleAveragePose();
+  }
 }
 
 function updateReport() {
@@ -358,8 +374,8 @@ async function start() {
     engine.start();
     startBtn.disabled = false;
     startBtn.textContent = "Detener cámara";
+    initialOverlay.hidden = true;
     resetBtn.disabled = false;
-    snapshotBtn.disabled = false;
     toggleMeasureBtn.disabled = false;
     toggleMeasureBtn.textContent = "Empezar medición";
     setStatus('Cámara lista — presioná "Empezar medición" cuando estés en posición y listo para pedalear.');
@@ -375,9 +391,10 @@ function stop() {
   engine.stopCamera();
   clearWarmup();
   measuring = false;
+  updateRecordingOverlay();
+  initialOverlay.hidden = false;
   startBtn.disabled = false;
   startBtn.textContent = "Iniciar cámara";
-  snapshotBtn.disabled = true;
   toggleMeasureBtn.disabled = true;
   toggleMeasureBtn.textContent = "Empezar medición";
   setStatus("Detenido");
@@ -390,6 +407,7 @@ function reset() {
   if (showingAverage) toggleAveragePose();
   clearWarmup();
   measuring = false;
+  updateRecordingOverlay();
   toggleMeasureBtn.textContent = "Empezar medición";
   if (engine.running) {
     toggleMeasureBtn.disabled = false;
@@ -413,35 +431,13 @@ function toggleAveragePose() {
     videoEl.style.visibility = "visible";
     avgPoseBtn.textContent = "Ver pose promedio";
   }
-}
-
-function takeSnapshot() {
-  lastSnapshotDataUrl = showingAverage
-    ? overlayEl.toDataURL("image/png")
-    : captureSnapshot(videoEl, overlayEl);
-  snapshotWrap.innerHTML = `<img src="${lastSnapshotDataUrl}" alt="Resultado visual" />`;
-}
-
-function onGenerateReport() {
-  let filas, recs;
-  if (isFrontalMode()) {
-    filas = tablaFrontal(computeFrontalStats());
-    recs = [];
-  } else {
-    const n = analyzer.cycleCount();
-    const stats = n > 0 ? computeAggregateStats() : {};
-    filas = n > 0 ? tablaBiomecanica(stats, styleSelect.value) : [];
-    recs = n > 0 ? construirRecomendaciones(stats, styleSelect.value) : [];
-  }
-  generateReport({ filas, recs, snapshotDataUrl: lastSnapshotDataUrl });
+  updateRecordingOverlay();
 }
 
 startBtn.addEventListener("click", onToggleCameraClick);
 resetBtn.addEventListener("click", reset);
 toggleMeasureBtn.addEventListener("click", onToggleMeasureClick);
-snapshotBtn.addEventListener("click", takeSnapshot);
 avgPoseBtn.addEventListener("click", toggleAveragePose);
-reportBtn.addEventListener("click", onGenerateReport);
 styleSelect.addEventListener("change", updateReport);
 viewModeSelect.addEventListener("change", onViewModeChange);
 

@@ -8,9 +8,8 @@ ningún video sale de tu máquina.
 Sigue los ángulos articulares del ciclista cuadro por cuadro, los segmenta en
 pedaladas, y compara los promedios de altura de sillín, cadera, espalda y
 brazos contra rangos de referencia habituales en bike fitting, siguiendo la
-misma nomenclatura y estructura que un reporte de estudio biomecánico
-profesional (Resumen Biomecánico, Resumen de medidas, Consideraciones,
-Resultado Visual).
+misma nomenclatura que un reporte de estudio biomecánico profesional (Resumen
+Biomecánico, Consideraciones).
 
 ## Cómo correrlo
 
@@ -42,24 +41,28 @@ cámara.
 - Pedaleá a un ritmo constante y natural durante al menos 10-15 vueltas antes
   de leer el resumen — cuantos más ciclos se capturen, más confiables son los
   promedios y el chequeo de variabilidad.
-- **"Iniciar cámara"** es un toggle: prende la cámara y el rastreo, y pasa a
+- La caja de video muestra instrucciones grandes antes de arrancar la cámara.
+  **"Iniciar cámara"** es un toggle: prende la cámara y el rastreo, y pasa a
   decir **"Detener cámara"** — apretarlo mientras está corriendo apaga todo
   (cámara, rastreo y medición). Prender la cámara solo no empieza a grabar
   pedaladas todavía.
 - Subite a la bici, acomodate, y cuando estés listo apretá **"Empezar
   medición"** (el botón del medio, entre "Iniciar cámara" y "Reiniciar
-  sesión"). Ahí arranca la cuenta regresiva (5s por defecto, configurable en
-  "Cuenta regresiva antes de medir") antes de que empiece a registrar
-  pedaladas, para que el acomodo inicial no ensucie los datos. Ese mismo
-  botón pasa a decir **"Detener medición"** mientras la cuenta regresiva o la
-  medición están en curso — apretarlo corta solo el registro, la cámara sigue
-  prendida. "Reiniciar sesión" vuelve a dejar todo listo para apretar
-  "Empezar medición" de nuevo sin apagar la cámara.
+  sesión"). Ahí arranca una cuenta regresiva fija de 10s antes de que empiece
+  a registrar pedaladas, para que el acomodo inicial no ensucie los datos.
+  Mientras se graba, un aviso "Seguí pedaleando" queda arriba del video. Ese
+  mismo botón pasa a decir **"Detener medición"** mientras la cuenta
+  regresiva o la medición están en curso — apretarlo corta solo el registro,
+  la cámara sigue prendida.
+- Cada vez que apretás "Empezar medición" arranca una captura completamente
+  nueva — los datos de la vez anterior no se acumulan, así el conteo de
+  pedaladas y los promedios reflejan solo la corrida actual. "Reiniciar
+  sesión" limpia todo y deja todo listo sin apagar la cámara.
 - La medición se corta sola apenas la postura se estabiliza (mínimo 8
   pedaladas, y que las últimas 5 coincidan de cerca en rodilla/cadera/torso/
-  brazo) — no hace falta pedalear de más ni frenar manualmente. Si querés
-  seguir sumando datos después de eso, "Empezar medición" te deja retomar sin
-  perder lo ya grabado.
+  brazo) — no hace falta pedalear de más ni frenar manualmente. Al terminar
+  (sola o apretando "Detener medición"), en vista Perfil pasa directo a
+  mostrar la [pose promedio](#pose-promedio).
 
 ## Qué mide
 
@@ -89,16 +92,18 @@ debajo siguen dando el detalle en prosa.
 
 ## Pose promedio
 
-Una vez que se capturan pedaladas (en vista Perfil), el botón **"Ver pose
-promedio"** reemplaza la cámara en vivo por dos esqueletos estáticos lado a
-lado, armados con la posición promedio de cada articulación a lo largo de
-todos los ciclos capturados: uno en el punto muerto inferior (PMI, pedal
-abajo, donde se lee la rodilla/pie) y otro en el punto muerto superior (PMS,
-pedal arriba, donde se lee la cadera) — un solo esqueleto congelado no puede
-representar honestamente las dos mediciones a la vez, ya que la pierna está
-en una postura bien distinta en cada punto. Sirve para revisar la postura
-medida sin que el video en vivo se mueva todo el tiempo. "Volver a cámara en
-vivo" restaura el feed.
+Al terminar una medición en vista Perfil, la app pasa sola a mostrar la
+**pose promedio** (o se puede volver a abrir a mano con "Ver pose
+promedio"). Reemplaza la cámara en vivo por dos esqueletos estáticos
+superpuestos sobre el mismo cuadro y a la misma escala real que el video —
+armados con la posición promedio de cada articulación a lo largo de todos
+los ciclos capturados: uno **naranja**, en el punto muerto inferior (PMI,
+pedal abajo, donde se lee la rodilla/pie), y otro **azul**, en el punto
+muerto superior (PMS, pedal arriba, donde se lee la cadera) — un solo
+esqueleto congelado no puede representar honestamente las dos mediciones a
+la vez, ya que la pierna está en una postura bien distinta en cada punto.
+Sirve para revisar la postura medida sin que el video en vivo se mueva todo
+el tiempo. "Volver a cámara en vivo" restaura el feed.
 
 ## Vista frontal
 
@@ -118,22 +123,6 @@ señala como pendiente ("Requiere cámara frontal").
   "Ver pose promedio" no está disponible en este modo.
 - La tabla muestra un valor por pierna (p. ej. "5.8° adentro"), con un umbral
   de referencia de ±3° como seguimiento "normal".
-
-## El reporte completo
-
-Además del análisis en vivo, la página tiene los mismos campos que un reporte
-de bike fit en papel para las medidas físicas del cuadro (altura de sillín,
-retroceso, alcance, ángulo de sillín, espaciadores). Esos campos son de carga
-manual (la cámara no puede medir el cuadro en milímetros sin una
-referencia calibrada) — se completan a mano y quedan incluidos al generar el
-reporte.
-
-Con el botón **"Capturar resultado visual"** se congela el cuadro actual (la
-cámara en vivo o la pose promedio, lo que esté visible en ese momento) con la
-superposición de ángulos, tal como la foto de un reporte de bike fit. El
-botón **"Generar reporte"** arma todo (tabla biomecánica, medidas físicas,
-consideraciones, foto) en una página imprimible — desde el diálogo de
-impresión del navegador se puede guardar directamente como PDF.
 
 ## Limitaciones
 

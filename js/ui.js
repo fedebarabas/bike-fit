@@ -20,8 +20,11 @@ const CONNECTIONS = [
 ];
 
 const BADGE_COLOR = "#ff8a3d"; // orange, matching the reference report's overlay style
+const BADGE_BG = "rgba(255,138,61,0.9)";
+const PMS_COLOR = "#6ea8ff"; // blue, distinguishes the PMS pose overlaid on the same frame
+const PMS_BADGE_BG = "rgba(110,168,255,0.9)";
 
-function drawBadge(ctx, x, y, lines) {
+function drawBadge(ctx, x, y, lines, bgColor = BADGE_BG, dotColor = BADGE_COLOR) {
   ctx.font = "bold 13px -apple-system, BlinkMacSystemFont, sans-serif";
   const paddingX = 8, paddingY = 6, lineH = 16;
   const widths = lines.map((l) => ctx.measureText(l).width);
@@ -29,7 +32,7 @@ function drawBadge(ctx, x, y, lines) {
   const h = lineH * lines.length + paddingY * 2;
   const bx = x - w / 2, by = y - h - 10;
 
-  ctx.fillStyle = "rgba(255,138,61,0.9)";
+  ctx.fillStyle = bgColor;
   ctx.beginPath();
   ctx.roundRect(bx, by, w, h, 6);
   ctx.fill();
@@ -40,7 +43,7 @@ function drawBadge(ctx, x, y, lines) {
   });
 
   // small connector dot at the joint
-  ctx.fillStyle = BADGE_COLOR;
+  ctx.fillStyle = dotColor;
   ctx.beginPath();
   ctx.arc(x, y, 4, 0, Math.PI * 2);
   ctx.fill();
@@ -127,21 +130,13 @@ export function drawFrontalSkeleton(ctx, landmarks, width, height, frontal) {
   drawBadge(ctx, xy.rightKnee.x * width, xy.rightKnee.y * height, ["Rodilla Der.", fmtTrackingDeg(frontal.right)]);
 }
 
-// Draws one stick figure (from averaged joint positions) into the given
-// horizontal slice of the canvas, with a caption above it. Returns a mapper
-// so the caller can place badges at the right joints in canvas space.
-function drawFigureSlice(ctx, avgXY, xOffset, sliceWidth, height, label) {
-  const topMargin = 22;
-  const mapX = (x) => xOffset + x * sliceWidth;
-  const mapY = (y) => topMargin + y * (height - topMargin);
-
-  ctx.fillStyle = "#9aa0a8";
-  ctx.font = "bold 12px -apple-system, BlinkMacSystemFont, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(label, xOffset + sliceWidth / 2, 16);
-  ctx.textAlign = "left";
-
+// Draws one stick figure from averaged joint positions, mapped at the exact
+// same x∈[0,1]→width, y∈[0,1]→height scale the live feed uses — so it lines
+// up with where the rider actually was in frame, not a resized copy of it.
+function drawFigureFullScale(ctx, avgXY, width, height, color) {
   if (!avgXY) return null;
+  const mapX = (x) => x * width;
+  const mapY = (y) => y * height;
   const p = avgXY;
   const segments = [
     [p.shoulder, p.elbow], [p.elbow, p.wrist],
@@ -149,7 +144,7 @@ function drawFigureSlice(ctx, avgXY, xOffset, sliceWidth, height, label) {
     [p.knee, p.ankle], [p.ankle, p.footIndex],
   ];
   ctx.lineWidth = 3;
-  ctx.strokeStyle = BADGE_COLOR;
+  ctx.strokeStyle = color;
   for (const [a, b] of segments) {
     ctx.beginPath();
     ctx.moveTo(mapX(a.x), mapY(a.y));
@@ -157,7 +152,7 @@ function drawFigureSlice(ctx, avgXY, xOffset, sliceWidth, height, label) {
     ctx.stroke();
   }
   Object.values(p).forEach((joint) => {
-    ctx.fillStyle = BADGE_COLOR;
+    ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(mapX(joint.x), mapY(joint.y), 4, 0, Math.PI * 2);
     ctx.fill();
@@ -166,10 +161,12 @@ function drawFigureSlice(ctx, avgXY, xOffset, sliceWidth, height, label) {
   return { p, mapX, mapY };
 }
 
-// Draws two static stick figures side by side from averaged joint positions
-// — one at the bottom of the stroke (PMI, where the knee/foot angles are
-// read) and one at the top (PMS, where the hip angle is read) — since a
-// single frozen pose can't honestly represent both measurements at once.
+// Draws both averaged poses overlaid on the same frame, at the same scale as
+// the live feed — one at the bottom of the stroke (PMI, where the knee/foot
+// angles are read, in orange) and one at the top (PMS, where the hip angle
+// is read, in blue) — since a single frozen pose can't honestly represent
+// both measurements at once, but splitting them into separate panels made
+// each look smaller/differently scaled than how the rider actually appeared.
 // Used as the "pose promedio" view that replaces the live camera feed.
 export function drawAveragePose(ctx, width, height, avgXYPmi, avgXYPms, stats) {
   ctx.fillStyle = "#0a0a0a";
@@ -182,17 +179,15 @@ export function drawAveragePose(ctx, width, height, avgXYPmi, avgXYPms, stats) {
     return;
   }
 
-  const half = width / 2;
-  ctx.strokeStyle = "rgba(255,255,255,0.15)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(half, 0);
-  ctx.lineTo(half, height);
-  ctx.stroke();
+  ctx.font = "bold 12px -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillStyle = BADGE_COLOR;
+  ctx.fillText("● PMI — pedal abajo", 12, 18);
+  ctx.fillStyle = PMS_COLOR;
+  ctx.fillText("● PMS — pedal arriba", 12, 36);
 
   const fmt = (s) => (s ? `${s.mean.toFixed(1)}°` : "--");
 
-  const pmi = drawFigureSlice(ctx, avgXYPmi, 0, half, height, "PMI — pedal abajo");
+  const pmi = drawFigureFullScale(ctx, avgXYPmi, width, height, BADGE_COLOR);
   if (pmi) {
     drawBadge(ctx, pmi.mapX(pmi.p.shoulder.x), pmi.mapY(pmi.p.shoulder.y), ["Ángulo Torso", fmt(stats.torso)]);
     drawBadge(ctx, pmi.mapX(pmi.p.knee.x), pmi.mapY(pmi.p.knee.y), ["Ángulo Rodilla (PMI)", fmt(stats.rodillaPmi)]);
@@ -200,9 +195,9 @@ export function drawAveragePose(ctx, width, height, avgXYPmi, avgXYPms, stats) {
     drawBadge(ctx, pmi.mapX(pmi.p.elbow.x), pmi.mapY(pmi.p.elbow.y), ["Hombro-Muñeca", fmt(stats.hombroMuneca)]);
   }
 
-  const pms = drawFigureSlice(ctx, avgXYPms, half, half, height, "PMS — pedal arriba");
+  const pms = drawFigureFullScale(ctx, avgXYPms, width, height, PMS_COLOR);
   if (pms) {
-    drawBadge(ctx, pms.mapX(pms.p.hip.x), pms.mapY(pms.p.hip.y), ["Ángulo Cadera (PMS)", fmt(stats.caderaPms)]);
+    drawBadge(ctx, pms.mapX(pms.p.hip.x), pms.mapY(pms.p.hip.y), ["Ángulo Cadera (PMS)", fmt(stats.caderaPms)], PMS_BADGE_BG, PMS_COLOR);
   }
 }
 
@@ -349,19 +344,6 @@ export function renderRecommendations(container, recs) {
     }
     container.appendChild(card);
   }
-}
-
-// Composites the video frame + angle overlay into a single image, matching
-// what's shown on screen, for use as "Resultado Visual" in the report.
-export function captureSnapshot(videoEl, overlayCanvas) {
-  const w = overlayCanvas.width, h = overlayCanvas.height;
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(videoEl, 0, 0, w, h);
-  ctx.drawImage(overlayCanvas, 0, 0, w, h);
-  return canvas.toDataURL("image/png");
 }
 
 export function renderReadouts(container, frame) {

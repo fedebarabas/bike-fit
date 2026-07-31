@@ -18,6 +18,15 @@
         <video id="video" autoplay playsinline muted></video>
         <canvas id="overlay"></canvas>
         <div id="countdownOverlay" class="countdown-overlay" hidden></div>
+        <div id="initialOverlay" class="initial-overlay">
+          <div>
+            <p class="initial-title">Iniciá la cámara para comenzar</p>
+            <p class="initial-subtitle">Elegí la vista de cámara y el lado antes de arrancar</p>
+          </div>
+        </div>
+        <div id="recordingOverlay" class="recording-overlay" hidden>
+          <span class="rec-dot"></span> Seguí pedaleando
+        </div>
       </div>
       <div id="readouts" class="readouts">No se detecta la postura</div>
       <canvas id="chart" width="640" height="120"></canvas>
@@ -49,11 +58,6 @@
         </select>
       </div>
 
-      <div class="control-group">
-        <label for="countdown">Cuenta regresiva antes de medir (s)</label>
-        <input id="countdown" type="number" min="0" max="30" value="5" />
-      </div>
-
       <div class="control-group buttons">
         <button id="startBtn">Iniciar cámara</button>
         <button id="toggleMeasureBtn" disabled>Empezar medición</button>
@@ -65,7 +69,6 @@
       </div>
 
       <div class="control-group">
-        <button id="snapshotBtn" disabled>Capturar resultado visual</button>
         <button id="avgPoseBtn" disabled>Ver pose promedio</button>
       </div>
     </section>
@@ -78,43 +81,16 @@
     </section>
 
     <section class="panel span-2">
-      <h2>Resumen (medidas físicas)</h2>
-      <div class="grid-fields">
-        <label>Altura del sillín (mm) <input id="f-altura-sillin" type="number" /></label>
-        <label>Punta del sillín / caja pedalera (mm) <input id="f-setback" type="number" /></label>
-        <label>Punta del sillín / manillar (mm) <input id="f-reach" type="number" /></label>
-        <label>Ángulo del sillín (°) <input id="f-angulo-sillin" type="number" step="0.01" /></label>
-        <label>Espaciadores (mm) <input id="f-espaciadores" type="number" /></label>
-      </div>
-    </section>
-
-    <section class="panel span-2">
       <h2>Consideraciones</h2>
       <div id="recommendations" class="recommendations">
         Iniciá la cámara y pedaleá algunas vueltas frente a ella para obtener las consideraciones.
       </div>
-      <label class="notas-label">Notas adicionales
-        <textarea id="f-notas" rows="2" placeholder="Notas manuales para incluir en el reporte..."></textarea>
-      </label>
-    </section>
-
-    <section class="panel span-2">
-      <h2>Resultado Visual</h2>
-      <div id="snapshotWrap" class="snapshot-wrap">
-        <span class="muted">Todavía no se capturó ninguna imagen.</span>
-      </div>
-    </section>
-
-    <section class="panel span-2 report-actions">
-      <button id="reportBtn">Generar reporte (imprimir / exportar PDF)</button>
     </section>
   </main>
 
   <footer>
     <p>Corre enteramente en tu navegador — ningún video se sube a ningún servidor. Ubicá la cámara a la altura de la cadera, perpendicular a la bici, con suficiente distancia para ver desde el hombro hasta el pie. Esto da una guía general y no reemplaza un estudio biomecánico profesional.</p>
   </footer>
-
-  <div id="printReport" class="print-report" aria-hidden="true"></div>
 
   <script type="module" src="js/app.js"></script>
 </body>
