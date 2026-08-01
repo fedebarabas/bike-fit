@@ -30,12 +30,13 @@ main {
   margin: 0 auto;
 }
 
-/* Video stays a single tall block on the left; controls, Resumen Biomecánico
-   and Consideraciones stack in the narrower right column beside it. */
-.video-panel { grid-column: 1; grid-row: 1 / span 3; }
+/* Video stays a single tall block on the left, matching the height of the
+   config box + live readouts stacked in the narrower right column beside
+   it. The merged results panel runs full-width along the bottom. */
+.video-panel { grid-column: 1; grid-row: 1 / span 2; }
 .controls { grid-column: 2; grid-row: 1; }
-.resumen-panel { grid-column: 2; grid-row: 2; }
-.consideraciones-panel { grid-column: 2; grid-row: 3; }
+.live-readouts-panel { grid-column: 2; grid-row: 2; }
+.resultados-panel { grid-column: 1 / span 2; grid-row: 3; }
 
 .panel {
   background: var(--panel);
@@ -254,23 +255,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 
-.recommendations { color: var(--muted); font-size: 14px; }
-
-.rec-card {
-  border: 1px solid var(--border);
-  border-left-width: 4px;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 10px;
-}
-.rec-card h3 { margin: 0 0 4px; font-size: 14px; color: var(--text); }
-.rec-card p { margin: 0 0 4px; font-size: 13px; color: var(--muted); line-height: 1.4; }
-.rec-suggestion { color: var(--text) !important; }
-
-.rec-alerta { border-left-color: var(--warn); }
-.rec-info { border-left-color: #6ea8ff; }
-.rec-ok { border-left-color: var(--accent); }
-
 .muted { color: var(--muted); font-size: 13px; }
 
 footer {
@@ -282,7 +266,7 @@ footer {
 
 @media (max-width: 900px) {
   main { grid-template-columns: 1fr; }
-  .video-panel, .controls, .resumen-panel, .consideraciones-panel {
+  .video-panel, .controls, .live-readouts-panel, .resultados-panel {
     grid-column: 1;
     grid-row: auto;
   }

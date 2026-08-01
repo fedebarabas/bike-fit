@@ -1,9 +1,9 @@
 import { PoseEngine } from "./poseEngine.js";
 import { computeFrameAngles, computeFrontalAngles } from "./angles.js";
 import { StrokeAnalyzer } from "./strokeAnalyzer.js";
-import { construirRecomendaciones, tablaBiomecanica, tablaFrontal } from "./fitRules.js";
+import { tablaBiomecanica, tablaFrontal } from "./fitRules.js";
 import {
-  drawSkeleton, LiveChart, renderRecommendations, renderReadouts,
+  drawSkeleton, LiveChart, renderReadouts,
   drawAveragePose, renderTablaBiomecanica,
   drawFrontalSkeleton, renderReadoutsFrontal,
 } from "./ui.js";
@@ -12,7 +12,6 @@ const videoEl = document.getElementById("video");
 const overlayEl = document.getElementById("overlay");
 const chartEl = document.getElementById("chart");
 const readoutsEl = document.getElementById("readouts");
-const recommendationsEl = document.getElementById("recommendations");
 const resumenEl = document.getElementById("resumenBiomecanico");
 const cycleCountEl = document.getElementById("cycleCount");
 const viewModeSelect = document.getElementById("viewMode");
@@ -245,8 +244,6 @@ function updateReport() {
   avgPoseBtn.disabled = n === 0;
   if (n === 0) return;
   const stats = computeAggregateStats();
-  const recs = construirRecomendaciones(stats, styleSelect.value);
-  renderRecommendations(recommendationsEl, recs);
   const filas = tablaBiomecanica(stats, styleSelect.value);
   renderTablaBiomecanica(resumenEl, filas);
 }
@@ -267,19 +264,15 @@ function updateReportFrontal() {
   renderTablaBiomecanica(resumenEl, filas);
 }
 
-// Placeholder text + result panels differ by mode; shared by mode switches
-// and session resets so both stay in sync with whichever view is active.
+// Placeholder text differs by mode; shared by mode switches and session
+// resets so it stays in sync with whichever view is active.
 function resetResultsUI() {
   lastCycleCountAtReport = -1;
   cycleCountEl.textContent = "";
   avgPoseBtn.disabled = true;
-  if (isFrontalMode()) {
-    resumenEl.innerHTML = "<p class=\"muted\">Iniciá la cámara y pedaleá de frente para ver el seguimiento de rodilla.</p>";
-    recommendationsEl.textContent = "";
-  } else {
-    resumenEl.innerHTML = "<p class=\"muted\">Iniciá la cámara y pedaleá algunas vueltas frente a ella para obtener el resumen.</p>";
-    recommendationsEl.textContent = "Iniciá la cámara y pedaleá algunas vueltas frente a ella para obtener las consideraciones.";
-  }
+  resumenEl.innerHTML = isFrontalMode()
+    ? "<p class=\"muted\">Iniciá la cámara y pedaleá de frente para ver el seguimiento de rodilla.</p>"
+    : "<p class=\"muted\">Iniciá la cámara y pedaleá algunas vueltas frente a ella para obtener el resumen.</p>";
 }
 
 function onViewModeChange() {

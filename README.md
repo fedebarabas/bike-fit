@@ -9,7 +9,7 @@ Sigue los ángulos articulares del ciclista cuadro por cuadro, los segmenta en
 pedaladas, y compara los promedios de altura de sillín, cadera, espalda y
 brazos contra rangos de referencia habituales en bike fitting, siguiendo la
 misma nomenclatura que un reporte de estudio biomecánico profesional (Resumen
-Biomecánico, Consideraciones).
+Biomecánico).
 
 ## Cómo correrlo
 
@@ -84,11 +84,16 @@ flexión"):
 - **Variabilidad ciclo a ciclo** del ángulo de rodilla — marca un pedaleo
   inconsistente o balanceo de cadera.
 
-El "Resumen Biomecánico" se muestra como una tabla compacta — Ángulo | Medido
-| Objetivo | Acción — con la corrección sugerida para llevar ese ángulo a la
-tabla (p. ej. "Bajar el sillín ~5mm"), y un ícono ⓘ por fila que al pasar el
-mouse explica qué mide ese ángulo y por qué importa. Las "Consideraciones"
-debajo siguen dando el detalle en prosa.
+El "Resumen Biomecánico" (abajo de todo, ocupando todo el ancho) se muestra
+como una tabla compacta — Ángulo | Medido | Objetivo | Acción — con la
+corrección sugerida para llevar ese ángulo a la tabla (p. ej. "Bajar el
+sillín ~5mm"), y un ícono ⓘ por fila que al hacer click expande el detalle en
+prosa: qué mide ese ángulo, por qué importa, y la explicación específica del
+valor medido.
+
+Los ángulos en vivo (Torso/Cadera/Rodilla/Pie/Hombro-Muñeca) y el gráfico de
+ángulo de rodilla en el tiempo están en el panel **"Lectura en vivo"**, a la
+derecha, debajo de la configuración de cámara.
 
 ## Pose promedio
 

@@ -29,8 +29,6 @@
           <span class="rec-dot"></span> Seguí pedaleando
         </div>
       </div>
-      <div id="readouts" class="readouts">No se detecta la postura</div>
-      <canvas id="chart" width="640" height="120"></canvas>
     </section>
 
     <section class="controls">
@@ -69,17 +67,16 @@
       <button id="avgPoseBtn" disabled>Ver pose promedio</button>
     </section>
 
-    <section class="panel resumen-panel">
+    <section class="panel live-readouts-panel">
+      <h2>Lectura en vivo</h2>
+      <div id="readouts" class="readouts">No se detecta la postura</div>
+      <canvas id="chart" width="640" height="120"></canvas>
+    </section>
+
+    <section class="panel resultados-panel">
       <h2>Resumen Biomecánico <span id="cycleCount" class="cycle-count"></span></h2>
       <div id="resumenBiomecanico">
         <p class="muted">Iniciá la cámara y pedaleá algunas vueltas frente a ella para obtener el resumen.</p>
-      </div>
-    </section>
-
-    <section class="panel consideraciones-panel">
-      <h2>Consideraciones</h2>
-      <div id="recommendations" class="recommendations">
-        Iniciá la cámara y pedaleá algunas vueltas frente a ella para obtener las consideraciones.
       </div>
     </section>
   </main>

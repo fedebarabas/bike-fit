@@ -323,29 +323,6 @@ export class LiveChart {
   }
 }
 
-export function renderRecommendations(container, recs) {
-  container.innerHTML = "";
-  const orden = { alerta: 0, info: 1, ok: 2 };
-  const ordenados = [...recs].sort((a, b) => orden[a.severidad] - orden[b.severidad]);
-  for (const rec of ordenados) {
-    const card = document.createElement("div");
-    card.className = `rec-card rec-${rec.severidad}`;
-    const titulo = document.createElement("h3");
-    titulo.textContent = rec.titulo;
-    const detalle = document.createElement("p");
-    detalle.textContent = rec.detalle;
-    card.appendChild(titulo);
-    card.appendChild(detalle);
-    if (rec.sugerencia) {
-      const sug = document.createElement("p");
-      sug.className = "rec-suggestion";
-      sug.textContent = `→ ${rec.sugerencia}`;
-      card.appendChild(sug);
-    }
-    container.appendChild(card);
-  }
-}
-
 export function renderReadouts(container, frame) {
   if (!frame) {
     container.textContent = "No se detecta la postura";

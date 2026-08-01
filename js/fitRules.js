@@ -34,144 +34,8 @@ function ubicar(valor, [lo, hi], margen) {
   if (valor < lo) return { zona: "bajo", distancia: +(lo - valor).toFixed(1) };
   if (valor > hi) return { zona: "alto", distancia: +(valor - hi).toFixed(1) };
   if (valor - lo <= margen) return { zona: "cerca-bajo", distancia: +(valor - lo).toFixed(1) };
-  if (hi - valor <= margen) return { zona: "cerca-alto", distancia: +(hi - valor).toFixed(1) };
+  if (hi - valor <= margen) return { zona: "cerca-alto", distancia: +(valor - hi).toFixed(1) };
   return { zona: "media", distancia: 0 };
-}
-
-// stats: { rodillaPmi, caderaPms, torso, hombroMuneca, pie }, cada uno
-// { mean, std, min, max, n } o null (salida de StrokeAnalyzer.stats/summarize)
-export function construirRecomendaciones(stats, estilo) {
-  const recs = [];
-  const est = ESTILOS[estilo] ?? ESTILOS.deportivo;
-
-  const rodilla = stats.rodillaPmi;
-  if (rodilla) {
-    const u = ubicar(rodilla.mean, RODILLA_RANGO, RODILLA_MARGEN);
-    if (u.zona === "bajo") {
-      recs.push({
-        severidad: "alerta",
-        titulo: "Sillín probablemente bajo",
-        detalle: `El ángulo de rodilla en el punto muerto inferior es de ${rodilla.mean.toFixed(1)}°, ${u.distancia}° por debajo del rango habitual (${RODILLA_RANGO[0]}–${RODILLA_RANGO[1]}°). Una rodilla muy flexionada puede restar potencia y sobrecargar la parte delantera de la rodilla.`,
-        sugerencia: `Probar subir el sillín unos ${Math.round(u.distancia * 2.5)}mm y volver a medir.`,
-      });
-    } else if (u.zona === "alto") {
-      recs.push({
-        severidad: "alerta",
-        titulo: "Sillín probablemente alto",
-        detalle: `El ángulo de rodilla en el punto muerto inferior es de ${rodilla.mean.toFixed(1)}°, ${u.distancia}° por encima del rango habitual (${RODILLA_RANGO[0]}–${RODILLA_RANGO[1]}°). Una pierna casi estirada del todo suele generar balanceo de cadera y sobrecarga en isquiotibiales.`,
-        sugerencia: `Probar bajar el sillín unos ${Math.round(u.distancia * 2.5)}mm y volver a medir.`,
-      });
-    } else if (u.zona === "cerca-bajo") {
-      recs.push({
-        severidad: "info",
-        titulo: "Ángulo de rodilla cercano al límite de sillín bajo",
-        detalle: `El ángulo de rodilla está en ${rodilla.mean.toFixed(1)}°, cerca del límite inferior de la tabla (${RODILLA_RANGO[0]}°).`,
-      });
-    } else if (u.zona === "cerca-alto") {
-      recs.push({
-        severidad: "info",
-        titulo: "Ángulo de rodilla cercano al límite de sillín alto",
-        detalle: `El ángulo de rodilla está en ${rodilla.mean.toFixed(1)}°, cerca del límite superior de la tabla (${RODILLA_RANGO[1]}°).`,
-      });
-    } else {
-      recs.push({
-        severidad: "ok",
-        titulo: "Altura del sillín en la tabla media",
-        detalle: `El ángulo de rodilla está en la tabla media (${rodilla.mean.toFixed(1)}°), dentro del rango habitual de ${RODILLA_RANGO[0]}–${RODILLA_RANGO[1]}°.`,
-      });
-    }
-
-    if (rodilla.std > VARIABILIDAD_RODILLA_AVISO) {
-      recs.push({
-        severidad: "info",
-        titulo: "Ángulo de rodilla poco consistente entre pedaladas",
-        detalle: `Varía ±${rodilla.std.toFixed(1)}° entre ${rodilla.n} ciclos, más de lo esperable (~${VARIABILIDAD_RODILLA_AVISO}°) en un pedaleo estable.`,
-        sugerencia: "Puede deberse a balanceo de cadera, un sillín inestable, o ruido de la cámara — grabar un tramo más largo y parejo para confirmar.",
-      });
-    }
-  }
-
-  const caderaPms = stats.caderaPms;
-  if (caderaPms) {
-    if (caderaPms.mean < CADERA_PMS_PISO) {
-      recs.push({
-        severidad: "alerta",
-        titulo: "Ángulo de cadera muy cerrado",
-        detalle: `En el punto muerto superior, la cadera promedia ${caderaPms.mean.toFixed(1)}°, por debajo del piso de referencia de ${CADERA_PMS_PISO}°. Esto suele asociarse a pinzamiento de cadera o a la zona lumbar redondeándose.`,
-        sugerencia: "Si hay molestias en esa zona, revisar el retroceso del sillín o el largo del cuadro.",
-      });
-    } else {
-      recs.push({
-        severidad: "ok",
-        titulo: "Ángulo de cadera dentro de lo esperado",
-        detalle: `En el punto muerto superior, la cadera promedia ${caderaPms.mean.toFixed(1)}°, por encima del piso de referencia de ${CADERA_PMS_PISO}°.`,
-      });
-    }
-  }
-
-  const torso = stats.torso;
-  if (torso) {
-    const u = ubicar(torso.mean, est.torso, 0);
-    if (u.zona !== "media") {
-      recs.push({
-        severidad: "info",
-        titulo: `Ángulo de espalda fuera de la tabla para "${est.label}"`,
-        detalle: `La espalda promedia ${torso.mean.toFixed(1)}° respecto a la horizontal; la tabla para "${est.label}" es de ${est.torso[0]}–${est.torso[1]}°.`,
-        sugerencia: u.zona === "bajo"
-          ? "Postura más agresiva que el objetivo — subir el manillar o acortar el alcance para sentarse más erguido."
-          : "Postura más erguida que el objetivo — bajar y/o alargar el vástago para una posición más aerodinámica.",
-      });
-    } else {
-      const cercaLimite = torso.mean - est.torso[0] <= 5 || est.torso[1] - torso.mean <= 5;
-      recs.push({
-        severidad: "ok",
-        titulo: cercaLimite ? "Ángulo de espalda cercano al límite superior" : "Ángulo de espalda en la tabla",
-        detalle: `La espalda está ${cercaLimite ? "cercana al límite" : "en la tabla"} para "${est.label}" (${torso.mean.toFixed(1)}°, tabla ${est.torso[0]}–${est.torso[1]}°).`,
-      });
-    }
-  }
-
-  const hombroMuneca = stats.hombroMuneca;
-  if (hombroMuneca) {
-    const u = ubicar(hombroMuneca.mean, HOMBRO_MUNECA_RANGO, HOMBRO_MUNECA_MARGEN);
-    if (u.zona === "bajo") {
-      recs.push({
-        severidad: "info",
-        titulo: "Ángulo Hombro-Muñeca cercano al límite corto",
-        detalle: `El brazo está bastante flexionado (${hombroMuneca.mean.toFixed(1)}°, límite corto ${HOMBRO_MUNECA_RANGO[0]}°), lo que puede indicar un alcance corto o un puesto de manejo apretado.`,
-        sugerencia: "Si se siente cargado sobre los brazos o el cuello, considerar un vástago más largo o subir el manillar.",
-      });
-    } else if (u.zona === "alto") {
-      recs.push({
-        severidad: "info",
-        titulo: "Ángulo Hombro-Muñeca cercano al límite largo",
-        detalle: `El brazo está casi estirado del todo (${hombroMuneca.mean.toFixed(1)}°, límite largo ${HOMBRO_MUNECA_RANGO[1]}°). Los codos trabados transmiten las vibraciones del camino a hombros y cuello, y restan control de la dirección.`,
-        sugerencia: "Puede que el alcance sea muy largo, o sea un hábito postural — relajar conscientemente los codos; si persiste, considerar un vástago más corto.",
-      });
-    } else {
-      recs.push({
-        severidad: "ok",
-        titulo: "Ángulo Hombro-Muñeca en la tabla",
-        detalle: `El brazo promedia ${hombroMuneca.mean.toFixed(1)}°, dentro del rango relajado de ${HOMBRO_MUNECA_RANGO[0]}–${HOMBRO_MUNECA_RANGO[1]}°.`,
-      });
-    }
-  }
-
-  recs.push({
-    severidad: "info",
-    titulo: "Rodilla respecto al eje del pedal",
-    detalle: "No se puede evaluar con una sola cámara de perfil — requiere una vista frontal para ver si la rodilla se mueve hacia adentro o hacia afuera del eje del pedal.",
-  });
-
-  if (recs.length === 0) {
-    recs.push({
-      severidad: "info",
-      titulo: "Todavía no hay suficientes datos",
-      detalle: "Seguir pedaleando a ritmo constante frente a la cámara durante algunas vueltas más para reunir datos suficientes.",
-    });
-  }
-
-  return recs;
 }
 
 function estadoDeZona(zona) {
@@ -186,9 +50,69 @@ function fmt(stat) {
 
 const SIN_ACCION = "Ninguna — está en la tabla";
 
+function infoRodilla(rodilla, u) {
+  const base = "Ángulo entre cadera-rodilla-tobillo en el punto muerto inferior (pedal abajo). Indica la altura del sillín: valor bajo (más flexionada) → sillín bajo; valor alto (más estirada) → sillín alto.";
+  if (!rodilla) return base;
+  let detalle;
+  if (u.zona === "bajo") {
+    detalle = `El ángulo medido es de ${rodilla.mean.toFixed(1)}°, ${u.distancia}° por debajo del rango habitual (${RODILLA_RANGO[0]}–${RODILLA_RANGO[1]}°). Una rodilla muy flexionada puede restar potencia y sobrecargar la parte delantera de la rodilla. → Probar subir el sillín unos ${Math.round(u.distancia * 2.5)}mm y volver a medir.`;
+  } else if (u.zona === "alto") {
+    detalle = `El ángulo medido es de ${rodilla.mean.toFixed(1)}°, ${u.distancia}° por encima del rango habitual (${RODILLA_RANGO[0]}–${RODILLA_RANGO[1]}°). Una pierna casi estirada del todo suele generar balanceo de cadera y sobrecarga en isquiotibiales. → Probar bajar el sillín unos ${Math.round(u.distancia * 2.5)}mm y volver a medir.`;
+  } else if (u.zona === "cerca-bajo") {
+    detalle = `El ángulo está en ${rodilla.mean.toFixed(1)}°, cerca del límite inferior de la tabla (${RODILLA_RANGO[0]}°).`;
+  } else if (u.zona === "cerca-alto") {
+    detalle = `El ángulo está en ${rodilla.mean.toFixed(1)}°, cerca del límite superior de la tabla (${RODILLA_RANGO[1]}°).`;
+  } else {
+    detalle = `El ángulo está en la tabla media (${rodilla.mean.toFixed(1)}°), dentro del rango habitual de ${RODILLA_RANGO[0]}–${RODILLA_RANGO[1]}°.`;
+  }
+  if (rodilla.std > VARIABILIDAD_RODILLA_AVISO) {
+    detalle += ` Además, varía ±${rodilla.std.toFixed(1)}° entre ${rodilla.n} ciclos, más de lo esperable (~${VARIABILIDAD_RODILLA_AVISO}°) en un pedaleo estable — puede deberse a balanceo de cadera, un sillín inestable, o ruido de la cámara.`;
+  }
+  return `${base} ${detalle}`;
+}
+
+function infoCadera(caderaPms, alerta) {
+  const base = "Ángulo hombro-cadera-rodilla en el punto muerto superior (pedal arriba). Muy cerrado favorece el pinzamiento de cadera.";
+  if (!caderaPms) return base;
+  const detalle = alerta
+    ? `La cadera promedia ${caderaPms.mean.toFixed(1)}°, por debajo del piso de referencia de ${CADERA_PMS_PISO}°. Esto suele asociarse a pinzamiento de cadera o a la zona lumbar redondeándose. → Si hay molestias en esa zona, revisar el retroceso del sillín o el largo del cuadro.`
+    : `La cadera promedia ${caderaPms.mean.toFixed(1)}°, por encima del piso de referencia de ${CADERA_PMS_PISO}°.`;
+  return `${base} ${detalle}`;
+}
+
+function infoTorso(torso, u, est) {
+  const base = "Inclinación del torso respecto a la horizontal. El objetivo depende del estilo de manejo elegido.";
+  if (!torso) return base;
+  let detalle;
+  if (u.zona !== "media") {
+    const sugerencia = u.zona === "bajo"
+      ? "Postura más agresiva que el objetivo — subir el manillar o acortar el alcance para sentarse más erguido."
+      : "Postura más erguida que el objetivo — bajar y/o alargar el vástago para una posición más aerodinámica.";
+    detalle = `La espalda promedia ${torso.mean.toFixed(1)}° respecto a la horizontal; la tabla para "${est.label}" es de ${est.torso[0]}–${est.torso[1]}°. → ${sugerencia}`;
+  } else {
+    const cercaLimite = torso.mean - est.torso[0] <= 5 || est.torso[1] - torso.mean <= 5;
+    detalle = `La espalda está ${cercaLimite ? "cercana al límite" : "en la tabla"} para "${est.label}" (${torso.mean.toFixed(1)}°, tabla ${est.torso[0]}–${est.torso[1]}°).`;
+  }
+  return `${base} ${detalle}`;
+}
+
+function infoHombroMuneca(hombroMuneca, u) {
+  const base = "Ángulo hombro-codo-muñeca. Bajo (codo muy flexionado) puede indicar alcance corto; alto (brazo casi estirado) puede trabar el codo.";
+  if (!hombroMuneca) return base;
+  let detalle;
+  if (u.zona === "bajo") {
+    detalle = `El brazo está bastante flexionado (${hombroMuneca.mean.toFixed(1)}°, límite corto ${HOMBRO_MUNECA_RANGO[0]}°), lo que puede indicar un alcance corto o un puesto de manejo apretado. → Si se siente cargado sobre los brazos o el cuello, considerar un vástago más largo o subir el manillar.`;
+  } else if (u.zona === "alto") {
+    detalle = `El brazo está casi estirado del todo (${hombroMuneca.mean.toFixed(1)}°, límite largo ${HOMBRO_MUNECA_RANGO[1]}°). Los codos trabados transmiten las vibraciones del camino a hombros y cuello, y restan control de la dirección. → Puede que el alcance sea muy largo, o sea un hábito postural — relajar conscientemente los codos; si persiste, considerar un vástago más corto.`;
+  } else {
+    detalle = `El brazo promedia ${hombroMuneca.mean.toFixed(1)}°, dentro del rango relajado de ${HOMBRO_MUNECA_RANGO[0]}–${HOMBRO_MUNECA_RANGO[1]}°.`;
+  }
+  return `${base} ${detalle}`;
+}
+
 // Tabla compacta de valores medidos vs. referencia, con una explicación breve
-// por fila (usada como tooltip en pantalla, y como texto explícito al imprimir)
-// y la acción correctiva sugerida para llevar ese ángulo a la tabla.
+// por fila (usada como tooltip en pantalla) y la acción correctiva sugerida
+// para llevar ese ángulo a la tabla.
 export function tablaBiomecanica(stats, estilo) {
   const est = ESTILOS[estilo] ?? ESTILOS.deportivo;
   const filas = [];
@@ -206,7 +130,7 @@ export function tablaBiomecanica(stats, estilo) {
       : rodillaU.zona === "cerca-bajo" ? "Ninguna — cerca del límite de sillín bajo"
       : rodillaU.zona === "cerca-alto" ? "Ninguna — cerca del límite de sillín alto"
       : SIN_ACCION,
-    info: "Ángulo entre cadera-rodilla-tobillo en el punto muerto inferior (pedal abajo). Indica la altura del sillín: valor bajo (más flexionada) → sillín bajo; valor alto (más estirada) → sillín alto.",
+    info: infoRodilla(rodilla, rodillaU),
   });
 
   const caderaPms = stats.caderaPms;
@@ -217,7 +141,7 @@ export function tablaBiomecanica(stats, estilo) {
     objetivo: `> ${CADERA_PMS_PISO}°`,
     estado: caderaPms ? (caderaAlerta ? "alerta" : "ok") : "info",
     accion: caderaPms === null ? "—" : caderaAlerta ? "Aumentar retroceso de sillín o revisar largo de cuadro" : SIN_ACCION,
-    info: "Ángulo hombro-cadera-rodilla en el punto muerto superior (pedal arriba). Muy cerrado favorece el pinzamiento de cadera.",
+    info: infoCadera(caderaPms, caderaAlerta),
   });
 
   const torso = stats.torso;
@@ -231,7 +155,7 @@ export function tablaBiomecanica(stats, estilo) {
       : torsoU.zona === "bajo" ? "Subir manillar o acortar alcance"
       : torsoU.zona === "alto" ? "Bajar y/o alargar vástago"
       : SIN_ACCION,
-    info: "Inclinación del torso respecto a la horizontal. El objetivo depende del estilo de manejo elegido.",
+    info: infoTorso(torso, torsoU, est),
   });
 
   const hombroMuneca = stats.hombroMuneca;
@@ -245,7 +169,7 @@ export function tablaBiomecanica(stats, estilo) {
       : brazoU.zona === "bajo" ? "Relajar los codos; si persiste, vástago más largo o subir manillar"
       : brazoU.zona === "alto" ? "Relajar los codos; si persiste, vástago más corto"
       : SIN_ACCION,
-    info: "Ángulo hombro-codo-muñeca. Bajo (codo muy flexionado) puede indicar alcance corto; alto (brazo casi estirado) puede trabar el codo.",
+    info: infoHombroMuneca(hombroMuneca, brazoU),
   });
 
   const pie = stats.pie;
@@ -264,7 +188,7 @@ export function tablaBiomecanica(stats, estilo) {
     objetivo: "—",
     estado: "info",
     accion: "Requiere cámara frontal",
-    info: "Requiere una cámara frontal para evaluar si la rodilla se mueve hacia adentro o hacia afuera del eje del pedal.",
+    info: "No se puede evaluar con una sola cámara de perfil — requiere una vista frontal para ver si la rodilla se mueve hacia adentro o hacia afuera del eje del pedal.",
   });
 
   return filas;
