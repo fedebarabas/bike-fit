@@ -188,16 +188,14 @@ textarea { resize: vertical; }
 }
 
 .control-group { display: flex; flex-direction: column; gap: 6px; }
-.control-group label,
-.status-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.control-group.span-2 { grid-column: 1 / span 2; }
+.control-group label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
 .buttons { flex-direction: row; gap: 8px; }
 button { cursor: pointer; flex: 1; }
 button:hover:not(:disabled) { border-color: var(--accent); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 #startBtn { background: var(--accent); color: #0a0a0a; border-color: var(--accent); font-weight: 600; }
-
-.status { font-size: 13px; color: var(--muted); }
 
 .cycle-count { font-size: 12px; color: var(--muted); font-weight: normal; }
 

@@ -15,7 +15,6 @@ const readoutsEl = document.getElementById("readouts");
 const recommendationsEl = document.getElementById("recommendations");
 const resumenEl = document.getElementById("resumenBiomecanico");
 const cycleCountEl = document.getElementById("cycleCount");
-const statusEl = document.getElementById("statusLine");
 const viewModeSelect = document.getElementById("viewMode");
 const sideGroup = document.getElementById("sideGroup");
 const styleGroup = document.getElementById("styleGroup");
@@ -56,10 +55,6 @@ const STABILITY_THRESHOLD_DEG = 1.5;
 // Fixed on purpose — a configurable value wasn't earning its keep as a control.
 const MEASURE_COUNTDOWN_SECONDS = 10;
 
-function setStatus(text) {
-  statusEl.textContent = text;
-}
-
 // Keeps the video box's three mutually-exclusive overlay states in sync in
 // one place: before the camera starts, once it's ready and waiting for the
 // rider to start measuring, and while actively recording. (The countdown
@@ -96,12 +91,10 @@ function updateWarmupDisplay() {
     clearWarmup();
     measuring = true;
     updateOverlays();
-    setStatus("Rastreando — pedaleá con ritmo constante frente a la cámara");
     return;
   }
   const remaining = Math.ceil(remainingMs / 1000);
   countdownOverlay.textContent = String(remaining);
-  setStatus(`Preparate — empieza a medir en ${remaining}s`);
 }
 
 function beginMeasuring() {
@@ -128,7 +121,7 @@ function beginMeasuring() {
 // the camera itself keeps running, controlled separately by "Iniciar cámara".
 function onToggleMeasureClick() {
   if (measuring || warmupActive) {
-    stopMeasuring("manual");
+    stopMeasuring();
   } else {
     beginMeasuring();
   }
@@ -232,18 +225,11 @@ function isPostureStable() {
   });
 }
 
-function stopMeasuring(reason) {
+function stopMeasuring() {
   clearWarmup();
   measuring = false;
   toggleMeasureBtn.textContent = "Empezar medición";
   updateOverlays();
-
-  const n = isFrontalMode() ? Math.max(frontalSamples.left.length, frontalSamples.right.length) : analyzer.cycleCount();
-  setStatus(
-    reason === "stable"
-      ? `Postura estabilizada — medición completa tras ${n} pedaladas.`
-      : `Medición detenida tras ${n} pedaladas.`
-  );
 
   // Jump straight to the frozen average-pose review — that's the whole point
   // of finishing a measurement in Perfil mode. Frontal mode has no such view;
@@ -357,7 +343,7 @@ function onPoseResultPerfil(landmarks, tMs) {
   if (analyzer.cycleCount() !== lastCycleCountAtReport) {
     lastCycleCountAtReport = analyzer.cycleCount();
     updateReport();
-    if (isPostureStable()) stopMeasuring("stable");
+    if (isPostureStable()) stopMeasuring();
   }
 }
 
@@ -371,11 +357,9 @@ function onPoseResult(landmarks, tMs) {
 
 async function start() {
   startBtn.disabled = true;
-  setStatus("Solicitando cámara…");
   try {
     await engine.startCamera(videoEl);
     resizeOverlay();
-    setStatus("Cargando modelo de postura…");
     if (!engine.landmarker) await engine.init();
     engine.onResult = onPoseResult;
     engine.start();
@@ -384,10 +368,9 @@ async function start() {
     toggleMeasureBtn.disabled = false;
     toggleMeasureBtn.textContent = "Empezar medición";
     updateOverlays();
-    setStatus("Cámara lista.");
   } catch (err) {
     console.error(err);
-    setStatus(`Error: ${err.message}`);
+    alert(`No se pudo iniciar la cámara: ${err.message}`);
     startBtn.disabled = false;
   }
 }
@@ -402,7 +385,6 @@ function stop() {
   startBtn.textContent = "Iniciar cámara";
   toggleMeasureBtn.disabled = true;
   toggleMeasureBtn.textContent = "Empezar medición";
-  setStatus("Detenido");
 }
 
 function toggleAveragePose() {
