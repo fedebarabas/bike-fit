@@ -47,17 +47,15 @@ cámara.
   (cámara, rastreo y medición). Prender la cámara solo no empieza a grabar
   pedaladas todavía.
 - Subite a la bici, acomodate, y cuando estés listo apretá **"Empezar
-  medición"** (el botón del medio, entre "Iniciar cámara" y "Reiniciar
-  sesión"). Ahí arranca una cuenta regresiva fija de 10s antes de que empiece
-  a registrar pedaladas, para que el acomodo inicial no ensucie los datos.
-  Mientras se graba, un aviso "Seguí pedaleando" queda arriba del video. Ese
-  mismo botón pasa a decir **"Detener medición"** mientras la cuenta
-  regresiva o la medición están en curso — apretarlo corta solo el registro,
-  la cámara sigue prendida.
+  medición"**. Ahí arranca una cuenta regresiva fija de 10s antes de que
+  empiece a registrar pedaladas, para que el acomodo inicial no ensucie los
+  datos. Mientras se graba, un aviso "Seguí pedaleando" queda arriba del
+  video. Ese mismo botón pasa a decir **"Detener medición"** mientras la
+  cuenta regresiva o la medición están en curso — apretarlo corta solo el
+  registro, la cámara sigue prendida.
 - Cada vez que apretás "Empezar medición" arranca una captura completamente
   nueva — los datos de la vez anterior no se acumulan, así el conteo de
-  pedaladas y los promedios reflejan solo la corrida actual. "Reiniciar
-  sesión" limpia todo y deja todo listo sin apagar la cámara.
+  pedaladas y los promedios reflejan solo la corrida actual.
 - La medición se corta sola apenas la postura se estabiliza (mínimo 8
   pedaladas, y que las últimas 5 coincidan de cerca en rodilla/cadera/torso/
   brazo) — no hace falta pedalear de más ni frenar manualmente. Al terminar

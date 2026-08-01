@@ -26,7 +26,6 @@ const initialOverlay = document.getElementById("initialOverlay");
 const recordingOverlay = document.getElementById("recordingOverlay");
 const startBtn = document.getElementById("startBtn");
 const toggleMeasureBtn = document.getElementById("toggleMeasureBtn");
-const resetBtn = document.getElementById("resetBtn");
 const avgPoseBtn = document.getElementById("avgPoseBtn");
 
 const overlayCtx = overlayEl.getContext("2d");
@@ -375,7 +374,6 @@ async function start() {
     startBtn.disabled = false;
     startBtn.textContent = "Detener cámara";
     initialOverlay.hidden = true;
-    resetBtn.disabled = false;
     toggleMeasureBtn.disabled = false;
     toggleMeasureBtn.textContent = "Empezar medición";
     setStatus('Cámara lista — presioná "Empezar medición" cuando estés en posición y listo para pedalear.');
@@ -400,24 +398,6 @@ function stop() {
   setStatus("Detenido");
 }
 
-function reset() {
-  analyzer.reset();
-  frontalSamples = { left: [], right: [] };
-  resetResultsUI();
-  if (showingAverage) toggleAveragePose();
-  clearWarmup();
-  measuring = false;
-  updateRecordingOverlay();
-  toggleMeasureBtn.textContent = "Empezar medición";
-  if (engine.running) {
-    toggleMeasureBtn.disabled = false;
-    setStatus('Sesión reiniciada — presioná "Empezar medición" cuando estés listo.');
-  } else {
-    toggleMeasureBtn.disabled = true;
-    setStatus("Inactivo");
-  }
-}
-
 function toggleAveragePose() {
   showingAverage = !showingAverage;
   if (showingAverage) {
@@ -435,7 +415,6 @@ function toggleAveragePose() {
 }
 
 startBtn.addEventListener("click", onToggleCameraClick);
-resetBtn.addEventListener("click", reset);
 toggleMeasureBtn.addEventListener("click", onToggleMeasureClick);
 avgPoseBtn.addEventListener("click", toggleAveragePose);
 styleSelect.addEventListener("change", updateReport);
