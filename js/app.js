@@ -23,6 +23,7 @@ const sideSelect = document.getElementById("side");
 const styleSelect = document.getElementById("style");
 const countdownOverlay = document.getElementById("countdownOverlay");
 const initialOverlay = document.getElementById("initialOverlay");
+const readyOverlay = document.getElementById("readyOverlay");
 const recordingOverlay = document.getElementById("recordingOverlay");
 const startBtn = document.getElementById("startBtn");
 const toggleMeasureBtn = document.getElementById("toggleMeasureBtn");
@@ -59,7 +60,14 @@ function setStatus(text) {
   statusEl.textContent = text;
 }
 
-function updateRecordingOverlay() {
+// Keeps the video box's three mutually-exclusive overlay states in sync in
+// one place: before the camera starts, once it's ready and waiting for the
+// rider to start measuring, and while actively recording. (The countdown
+// overlay is managed separately, right where its own timer ticks.)
+function updateOverlays() {
+  const cameraOn = engine.running;
+  initialOverlay.hidden = cameraOn;
+  readyOverlay.hidden = !(cameraOn && !measuring && !warmupActive && !showingAverage);
   recordingOverlay.hidden = !(measuring && !showingAverage);
 }
 
@@ -87,7 +95,7 @@ function updateWarmupDisplay() {
   if (remainingMs <= 0) {
     clearWarmup();
     measuring = true;
-    updateRecordingOverlay();
+    updateOverlays();
     setStatus("Rastreando — pedaleá con ritmo constante frente a la cámara");
     return;
   }
@@ -107,8 +115,8 @@ function beginMeasuring() {
   clearWarmup();
   measuring = false;
   toggleMeasureBtn.textContent = "Detener medición";
-  updateRecordingOverlay();
   warmupActive = true;
+  updateOverlays();
   warmupDeadline = Date.now() + MEASURE_COUNTDOWN_SECONDS * 1000;
   countdownOverlay.hidden = false;
   updateWarmupDisplay();
@@ -228,7 +236,7 @@ function stopMeasuring(reason) {
   clearWarmup();
   measuring = false;
   toggleMeasureBtn.textContent = "Empezar medición";
-  updateRecordingOverlay();
+  updateOverlays();
 
   const n = isFrontalMode() ? Math.max(frontalSamples.left.length, frontalSamples.right.length) : analyzer.cycleCount();
   setStatus(
@@ -373,10 +381,10 @@ async function start() {
     engine.start();
     startBtn.disabled = false;
     startBtn.textContent = "Detener cámara";
-    initialOverlay.hidden = true;
     toggleMeasureBtn.disabled = false;
     toggleMeasureBtn.textContent = "Empezar medición";
-    setStatus('Cámara lista — presioná "Empezar medición" cuando estés en posición y listo para pedalear.');
+    updateOverlays();
+    setStatus("Cámara lista.");
   } catch (err) {
     console.error(err);
     setStatus(`Error: ${err.message}`);
@@ -389,8 +397,7 @@ function stop() {
   engine.stopCamera();
   clearWarmup();
   measuring = false;
-  updateRecordingOverlay();
-  initialOverlay.hidden = false;
+  updateOverlays();
   startBtn.disabled = false;
   startBtn.textContent = "Iniciar cámara";
   toggleMeasureBtn.disabled = true;
@@ -411,7 +418,7 @@ function toggleAveragePose() {
     videoEl.style.visibility = "visible";
     avgPoseBtn.textContent = "Ver pose promedio";
   }
-  updateRecordingOverlay();
+  updateOverlays();
 }
 
 startBtn.addEventListener("click", onToggleCameraClick);

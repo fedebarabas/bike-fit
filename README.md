@@ -45,7 +45,9 @@ cámara.
   **"Iniciar cámara"** es un toggle: prende la cámara y el rastreo, y pasa a
   decir **"Detener cámara"** — apretarlo mientras está corriendo apaga todo
   (cámara, rastreo y medición). Prender la cámara solo no empieza a grabar
-  pedaladas todavía.
+  pedaladas todavía — la caja de video pasa a mostrar, en letras grandes,
+  que hay que subirse a la bici y apretar "Empezar medición" cuando esté
+  todo listo (mencionando la cuenta regresiva de 10s).
 - Subite a la bici, acomodate, y cuando estés listo apretá **"Empezar
   medición"**. Ahí arranca una cuenta regresiva fija de 10s antes de que
   empiece a registrar pedaladas, para que el acomodo inicial no ensucie los
