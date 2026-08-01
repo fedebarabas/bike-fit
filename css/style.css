@@ -30,10 +30,11 @@ main {
   margin: 0 auto;
 }
 
-/* Video stays a single tall block on the left, matching the height of the
-   config box + live readouts stacked in the narrower right column beside
-   it. The merged results panel runs full-width along the bottom. */
-.video-panel { grid-column: 1; grid-row: 1 / span 2; }
+/* Video stays a single tall block on the left, stretched to flush with the
+   combined height of the config box + live readouts stacked in the
+   narrower right column beside it (see .video-wrap's height:100% below).
+   The merged results panel runs full-width along the bottom. */
+.video-panel { grid-column: 1; grid-row: 1 / span 2; align-self: stretch; }
 .controls { grid-column: 2; grid-row: 1; }
 .live-readouts-panel { grid-column: 2; grid-row: 2; }
 .resultados-panel { grid-column: 1 / span 2; grid-row: 3; }
@@ -68,8 +69,8 @@ textarea { resize: vertical; }
 .video-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  max-height: 55vh;
+  height: 100%;
+  min-height: 300px;
   background: #000;
   border-radius: 8px;
   overflow: hidden;
@@ -270,4 +271,8 @@ footer {
     grid-column: 1;
     grid-row: auto;
   }
+  /* Single-column stacking: nothing left to stretch to match, so fall back
+     to a fixed aspect ratio instead of height:100% (which would collapse). */
+  .video-panel { align-self: auto; }
+  .video-wrap { height: auto; aspect-ratio: 16 / 9; min-height: 0; }
 }
