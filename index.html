@@ -33,29 +33,36 @@
     </section>
 
     <section class="controls">
-      <div class="control-group">
-        <label for="viewMode">Vista de cámara</label>
-        <select id="viewMode">
-          <option value="perfil" selected>Perfil (lateral)</option>
-          <option value="frontal">Frontal</option>
-        </select>
-      </div>
+      <div class="controls-grid">
+        <div class="control-group">
+          <label for="viewMode">Vista de cámara</label>
+          <select id="viewMode">
+            <option value="perfil" selected>Perfil (lateral)</option>
+            <option value="frontal">Frontal</option>
+          </select>
+        </div>
 
-      <div class="control-group" id="sideGroup">
-        <label for="side">Lado que mira a la cámara</label>
-        <select id="side">
-          <option value="right">Derecho</option>
-          <option value="left">Izquierdo</option>
-        </select>
-      </div>
+        <div class="control-group">
+          <span class="status-label">Estado</span>
+          <span id="statusLine" class="status">Inactivo</span>
+        </div>
 
-      <div class="control-group" id="styleGroup">
-        <label for="style">Estilo de manejo objetivo</label>
-        <select id="style">
-          <option value="deportivo" selected>Deportivo / fondo</option>
-          <option value="agresivo">Agresivo / carrera</option>
-          <option value="urbano">Urbano / paseo</option>
-        </select>
+        <div class="control-group" id="sideGroup">
+          <label for="side">Lado que mira a la cámara</label>
+          <select id="side">
+            <option value="right">Derecho</option>
+            <option value="left">Izquierdo</option>
+          </select>
+        </div>
+
+        <div class="control-group" id="styleGroup">
+          <label for="style">Estilo de manejo objetivo</label>
+          <select id="style">
+            <option value="deportivo" selected>Deportivo / fondo</option>
+            <option value="agresivo">Agresivo / carrera</option>
+            <option value="urbano">Urbano / paseo</option>
+          </select>
+        </div>
       </div>
 
       <div class="control-group buttons">
@@ -64,23 +71,17 @@
         <button id="resetBtn" disabled>Reiniciar sesión</button>
       </div>
 
-      <div class="control-group">
-        <span id="statusLine" class="status">Inactivo</span>
-      </div>
-
-      <div class="control-group">
-        <button id="avgPoseBtn" disabled>Ver pose promedio</button>
-      </div>
+      <button id="avgPoseBtn" disabled>Ver pose promedio</button>
     </section>
 
-    <section class="panel span-2">
+    <section class="panel">
       <h2>Resumen Biomecánico <span id="cycleCount" class="cycle-count"></span></h2>
       <div id="resumenBiomecanico">
         <p class="muted">Iniciá la cámara y pedaleá algunas vueltas frente a ella para obtener el resumen.</p>
       </div>
     </section>
 
-    <section class="panel span-2">
+    <section class="panel">
       <h2>Consideraciones</h2>
       <div id="recommendations" class="recommendations">
         Iniciá la cámara y pedaleá algunas vueltas frente a ella para obtener las consideraciones.

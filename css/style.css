@@ -179,8 +179,15 @@ textarea { resize: vertical; }
   gap: 16px;
 }
 
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
 .control-group { display: flex; flex-direction: column; gap: 6px; }
-.control-group label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.control-group label,
+.status-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
 .buttons { flex-direction: row; gap: 8px; }
 button { cursor: pointer; flex: 1; }
